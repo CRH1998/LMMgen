@@ -1,4 +1,4 @@
-#' Title
+#' @title omega_func
 #'
 #' @param semi_def_matrix A list containing the three matrices, householder matrix, kinship matrix, identity matrix.
 #' @param sigma2_vec A vector containing the variances of the random effects in the same order as the three matrices.

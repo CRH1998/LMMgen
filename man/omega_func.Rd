@@ -2,7 +2,7 @@
 % Please edit documentation in R/omega_func.R
 \name{omega_func}
 \alias{omega_func}
-\title{Title}
+\title{omega_func}
 \usage{
 omega_func(semi_def_matrix, sigma2_vec)
 }
@@ -15,7 +15,7 @@ omega_func(semi_def_matrix, sigma2_vec)
 The variance/covariance matrix Sigma
 }
 \description{
-Title
+omega_func
 }
 \examples{
 mat1 <- matrix(1:9, ncol = 3)
