@@ -6,7 +6,7 @@
 \usage{
 family_dataset_generator(
   n_clusters = 100,
-  n_individuals_in_cluster = 10,
+  n_individuals = 10,
   variance_param = c("R", "H", "K"),
   n_mean_param = 1,
   beta_0 = 1,
@@ -21,7 +21,7 @@ family_dataset_generator(
 \arguments{
 \item{n_clusters}{Integer. Number of clusters.}
 
-\item{n_individuals_in_cluster}{Integer. Number of individuals in given cluster.}
+\item{n_individuals}{Integer. Number of individuals in given cluster.}
 
 \item{variance_param}{Vector. Vector of characters taking values 'R', 'H' and/or 'K' specifying covariance structure.}
 

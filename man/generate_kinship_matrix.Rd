@@ -4,15 +4,15 @@
 \alias{generate_kinship_matrix}
 \title{generate_kinship_matrix}
 \usage{
-generate_kinship_matrix(n_individuals_in_cluster, seed = NA)
+generate_kinship_matrix(n_individuals, seed = NA)
 }
 \arguments{
-\item{n_individuals_in_cluster}{Integer. Number of individuals in given cluster}
+\item{n_individuals}{Integer. Number of individuals in given cluster}
 
 \item{seed}{NA or integer. If left unspecified no seed is set. Otherwise set a seed.}
 }
 \value{
-Matrix. Returns a random kinship matrix of dimensions n_individuals_in_cluster x n_individuals_in_cluster
+Matrix. Returns a random kinship matrix of dimensions n_individuals x n_individuals
 }
 \description{
 function that generate kinship matrix

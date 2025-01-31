@@ -103,13 +103,13 @@ pair_children_with_spouses <- function(family_df, unassigned_individuals){
 #' @title generate_kinship_matrix
 #' @description function that generate kinship matrix
 #'
-#' @param n_individuals_in_cluster Integer. Number of individuals in given cluster
+#' @param n_individuals Integer. Number of individuals in given cluster
 #' @param seed NA or integer. If left unspecified no seed is set. Otherwise set a seed.
 #'
-#' @returns Matrix. Returns a random kinship matrix of dimensions n_individuals_in_cluster x n_individuals_in_cluster
+#' @returns Matrix. Returns a random kinship matrix of dimensions n_individuals x n_individuals
 #' @export
 
-generate_kinship_matrix <- function(n_individuals_in_cluster, seed = NA){
+generate_kinship_matrix <- function(n_individuals, seed = NA){
 
   if (!is.na(seed)){
     set.seed(seed)
@@ -117,10 +117,10 @@ generate_kinship_matrix <- function(n_individuals_in_cluster, seed = NA){
 
 
   # Specify id of each individual in the family
-  id  <- 1:n_individuals_in_cluster
+  id  <- 1:n_individuals
 
   # Randomly assign sex to each individual in the family
-  sex <- sample(c(1,2), n_individuals_in_cluster, prob = c(1/2,1/2), replace = T)
+  sex <- sample(c(1,2), n_individuals, prob = c(1/2,1/2), replace = T)
 
   # Unassigned individuals
   unassigned_individuals <- data.frame(id,sex)
@@ -166,9 +166,9 @@ generate_kinship_matrix <- function(n_individuals_in_cluster, seed = NA){
 
   }
 
-  full_family_df <- full_family_df %>% arrange(id)
+  full_family_df <- full_family_df %>% dplyr::arrange(id)
 
-  kinship_matrix <- kinship(id = full_family_df$id,
+  kinship_matrix <- kinship2::kinship(id = full_family_df$id,
                             dadid = full_family_df$dadid,
                             momid = full_family_df$momid,
                             sex = full_family_df$sex)
@@ -194,7 +194,7 @@ generate_kinship_matrix <- function(n_individuals_in_cluster, seed = NA){
 #' @description function that generates data based on the genetic matrices residual, household, kinship
 #'
 #' @param n_clusters Integer. Number of clusters.
-#' @param n_individuals_in_cluster Integer. Number of individuals in given cluster.
+#' @param n_individuals Integer. Number of individuals in given cluster.
 #' @param variance_param Vector. Vector of characters taking values 'R', 'H' and/or 'K' specifying covariance structure.
 #' @param n_mean_param Integer. Specify number of fixed effects. Taking values 1,2,3.
 #' @param beta_0 Real. Fixed effect 1.
@@ -205,10 +205,12 @@ generate_kinship_matrix <- function(n_individuals_in_cluster, seed = NA){
 #' @param sigma_K Real. Kinship variance.
 #' @param seed NA or integer. If left unspecified no seed is set. Otherwise set a seed.
 #'
+#' @importFrom stats rbinom rnorm
+#'
 #' @returns List. Returns a list consisting of a list of outcomes, list of gamma-matrices and list of design matrices
 #' @export
 
-family_dataset_generator <- function(n_clusters = 100, n_individuals_in_cluster = 10, variance_param = c('R', 'H', 'K'), n_mean_param = 1,
+family_dataset_generator <- function(n_clusters = 100, n_individuals = 10, variance_param = c('R', 'H', 'K'), n_mean_param = 1,
                                      beta_0 = 1, beta_1 = 3, beta_2 = 3, sigma_R = 1, sigma_H = 3, sigma_K = 5, seed = 1){
 
   # Set seed if specified for sampling later on
@@ -224,14 +226,14 @@ family_dataset_generator <- function(n_clusters = 100, n_individuals_in_cluster 
 
   if ('R' %in% variance_param){
     #Diagonal matrix with ones in the diagonal and dimension corresponding to the number of individuals in each cluster (intercept)
-    residual_matrix <- as.matrix(diag(1, nrow = n_individuals_in_cluster))
+    residual_matrix <- as.matrix(diag(1, nrow = n_individuals))
   } else {
     household_matrix <- 0
   }
 
   if ('H' %in% variance_param){
     #Matrix of ones indicating family relation
-    household_matrix <- matrix(1, nrow = n_individuals_in_cluster, ncol = n_individuals_in_cluster) # + as.matrix(diag(0.0, nrow = n_individuals_in_cluster))
+    household_matrix <- matrix(1, nrow = n_individuals, ncol = n_individuals) # + as.matrix(diag(0.0, nrow = n_individuals))
   } else {
     household_matrix <- 0
   }
@@ -241,7 +243,7 @@ family_dataset_generator <- function(n_clusters = 100, n_individuals_in_cluster 
   # Defining semi_def_matrices which is a list containing n_clusters replicas of the gamma_list
   if ('K' %in% variance_param){
     semi_def_matrices <- replicate(n_clusters,
-                                   list(residual_matrix, household_matrix, generate_kinship_matrix(n_individuals = n_individuals_in_cluster)),
+                                   list(residual_matrix, household_matrix, generate_kinship_matrix(n_individuals = n_individuals)),
                                    simplify = F)
   } else {
     semi_def_matrices <- replicate(n_clusters,
@@ -258,16 +260,16 @@ family_dataset_generator <- function(n_clusters = 100, n_individuals_in_cluster 
   #-----------------------------Mean value structure----------------------------
   # Defining the design_matrices
   if (n_mean_param == 1){
-    design_matrices <- replicate(n_clusters, as.matrix(cbind(rep(1, n_individuals_in_cluster))), simplify = F)
+    design_matrices <- replicate(n_clusters, as.matrix(cbind(rep(1, n_individuals))), simplify = F)
   } else if (n_mean_param == 2){
     #In this case the design matrices are an intercept and one covariate x1 which is drawn from a normal distribution with mean 0 and sd = 1.
-    design_matrices <- replicate(n_clusters, as.matrix(cbind(rep(1, n_individuals_in_cluster),
-                                                             rnorm(n_individuals_in_cluster))), simplify = F)
+    design_matrices <- replicate(n_clusters, as.matrix(cbind(rep(1, n_individuals),
+                                                             rnorm(n_individuals))), simplify = F)
   } else if (n_mean_param == 3) {
     #In this case the design matrices are an intercept and one covariate x1 which is drawn from a normal distribution with mean 0 and sd = 1.
-    design_matrices <- replicate(n_clusters, as.matrix(cbind(rep(1, n_individuals_in_cluster),
-                                                             rnorm(n_individuals_in_cluster),
-                                                             rnorm(n_individuals_in_cluster))), simplify = F)
+    design_matrices <- replicate(n_clusters, as.matrix(cbind(rep(1, n_individuals),
+                                                             rnorm(n_individuals),
+                                                             rnorm(n_individuals))), simplify = F)
   }
   #-----------------------------------------------------------------------------
 
@@ -286,16 +288,16 @@ family_dataset_generator <- function(n_clusters = 100, n_individuals_in_cluster 
 
   if (n_mean_param == 1){
     for (i in 1:n_clusters){
-      outcome_list[[i]] <- mvrnorm(n = 1, mu = rep(beta_0, n_individuals_in_cluster), Sigma = omega_func(semi_def_matrices[[i]], sigma2_vec = sigma2_vec))
+      outcome_list[[i]] <- MASS::mvrnorm(n = 1, mu = rep(beta_0, n_individuals), Sigma = omega_func(semi_def_matrices[[i]], sigma2_vec = sigma2_vec))
     }
   } else if (n_mean_param == 2){
     for (i in 1:n_clusters){
-      outcome_list[[i]] <- mvrnorm(n = 1, mu = rep(beta_0, n_individuals_in_cluster) + beta_1 * design_matrices[[i]][,2],
+      outcome_list[[i]] <- MASS::mvrnorm(n = 1, mu = rep(beta_0, n_individuals) + beta_1 * design_matrices[[i]][,2],
                                    Sigma = omega_func(semi_def_matrices[[i]], sigma2_vec = sigma2_vec))
     }
   } else if (n_mean_param == 3){
     for (i in 1:n_clusters){
-      outcome_list[[i]] <- mvrnorm(n = 1, mu = rep(beta_0, n_individuals_in_cluster) + beta_1 * design_matrices[[i]][,2] + beta_2 * design_matrices[[i]][,3],
+      outcome_list[[i]] <- MASS::mvrnorm(n = 1, mu = rep(beta_0, n_individuals) + beta_1 * design_matrices[[i]][,2] + beta_2 * design_matrices[[i]][,3],
                                    Sigma = omega_func(semi_def_matrices[[i]], sigma2_vec = sigma2_vec))
     }
   }
