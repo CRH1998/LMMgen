@@ -184,25 +184,25 @@ generate_kinship_matrix <- function(n_individuals, seed = NA){
 
 
 #-----------------------------------------------
-#   Generate family data for testing functions
+#               Generate family data
 #-----------------------------------------------
 
 
 # Generate data set for testing
 
-#' @title family_dataset_generator
-#' @description function that generates data based on the genetic matrices residual, household, kinship
+#' @title Family data set generator
+#' @description Generate genetics data.
 #'
-#' @param n_clusters Integer. Number of clusters.
-#' @param n_individuals Integer. Number of individuals in given cluster.
-#' @param variance_param Vector. Vector of characters taking values 'R', 'H' and/or 'K' specifying covariance structure.
-#' @param n_mean_param Integer. Specify number of fixed effects. Taking values 1,2,3.
-#' @param beta_0 Real. Fixed effect 1.
-#' @param beta_1 Real. Fixed effect 2.
-#' @param beta_2 Real. Fixed effect 3.
-#' @param sigma_R Real. Residual variance.
-#' @param sigma_H Real. Household variance.
-#' @param sigma_K Real. Kinship variance.
+#' @param n_clusters an integer denoting the number of clusters.
+#' @param n_individuals an integer denoting the number of individuals in given cluster.
+#' @param variance_param a vector of characters taking values 'R', 'H' and/or 'K' specifying covariance structure.
+#' @param n_mean_param an integer specifying number of fixed effects. Taking values 1,2,3.
+#' @param beta_0 a real denoting the first fixed effect.
+#' @param beta_1 a real denoting the second fixed effect.
+#' @param beta_2 a real denoting the third fixed effect.
+#' @param sigma_R a real denoting the residual variance.
+#' @param sigma_H a real denoting the household variance.
+#' @param sigma_K a real denoting the kinship variance.
 #' @param seed NA or integer. If left unspecified no seed is set. Otherwise set a seed.
 #'
 #' @importFrom stats rbinom rnorm
@@ -211,7 +211,7 @@ generate_kinship_matrix <- function(n_individuals, seed = NA){
 #' @export
 
 family_dataset_generator <- function(n_clusters = 100, n_individuals = 10, variance_param = c('R', 'H', 'K'), n_mean_param = 1,
-                                     beta_0 = 1, beta_1 = 3, beta_2 = 3, sigma_R = 1, sigma_H = 3, sigma_K = 5, seed = 1){
+                                     beta_0 = 1, beta_1 = 3, beta_2 = 3, sigma_R = 1, sigma_H = 3, sigma_K = 5, seed = NA){
 
   # Set seed if specified for sampling later on
   if (!is.na(seed)){
@@ -304,3 +304,108 @@ family_dataset_generator <- function(n_clusters = 100, n_individuals = 10, varia
 
   return(list('design_matrices' = design_matrices, 'semi_def_matrices' = semi_def_matrices, 'outcome_list' = outcome_list))
 }
+
+
+
+
+
+
+
+
+#-------------------------------FDG object--------------------------------------
+
+
+
+#' @title Family data set generator object
+#' @description Object for generating genetics data.
+#'
+#' @param n_clusters an integer denoting the number of clusters.
+#' @param n_individuals an integer denoting the number of individuals in given cluster.
+#' @param variance_param a vector of characters taking values 'R', 'H' and/or 'K' specifying covariance structure.
+#' @param n_mean_param an integer specifying number of fixed effects. Taking values 1,2,3.
+#' @param beta_0 a real denoting the first fixed effect.
+#' @param beta_1 a real denoting the second fixed effect.
+#' @param beta_2 a real denoting the third fixed effect.
+#' @param sigma_R a real denoting the residual variance.
+#' @param sigma_H a real denoting the household variance.
+#' @param sigma_K a real denoting the kinship variance.
+#' @param seed NA or integer. If left unspecified no seed is set. Otherwise set a seed.
+#'
+#' @returns Family data set
+#' @export
+FDG <- function(n_clusters = 100, n_individuals = 10,
+               variance_param = c('R', 'H', 'K'),
+               n_mean_param = 1, beta_0 = 1, beta_1 = 3, beta_2 = 3,
+               sigma_R = 1, sigma_H = 3, sigma_K = 5, seed = NA) {
+
+  family_dataset <- family_dataset_generator(n_clusters = n_clusters,
+                                             n_individuals = n_individuals,
+                                             variance_param = variance_param,
+                                             n_mean_param = n_mean_param,
+                                             beta_0 = beta_0, beta_1 = beta_1, beta_2 = beta_2,
+                                             sigma_R = sigma_R, sigma_H = sigma_H, sigma_K = sigma_K,
+                                             seed = seed)
+
+  outcome_mean <- get_outcome_mean(family_dataset$outcome_list)
+  outcome_var <- get_outcome_variance(family_dataset$outcome_list)
+
+
+
+  output <- structure(
+    list(
+      design_matrices = family_dataset$design_matrices,
+      semi_def_matrices = family_dataset$semi_def_matrices,
+      outcome_list = family_dataset$outcome_list,
+      n_clusters = n_clusters,
+      n_individuals = n_individuals,
+      variance_param = variance_param,
+      sigma_R = sigma_R, sigma_H = sigma_H, sigma_K = sigma_K,
+      outcome_mean = outcome_mean,
+      outcome_var = outcome_var),
+    class = "FDG"
+  )
+  return(output)
+}
+
+
+#' Family data set generator
+#'
+#' @param x an object of class FDG.
+#' @param ... additional arguments
+#'
+#' @returns Print for object of class FDG.
+#' @export
+#'
+print.FDG <- function(x, ...){
+  print(paste0("Number of clusters: ", x$n_clusters))
+  print(paste0("Number of individuals in each cluster: ", x$n_individuals))
+  print(paste0("Mean of simulated outcomes: ", x$outcome_mean))
+  print(paste0("Variance of simulated outcomes: ", x$outcome_var))
+
+  if(("R" %in% x$variance_param) & ("H" %in% x$variance_param) & ("K" %in% x$variance_param)){
+    print("Variance parameters used: Residual (R), Household (H) and Kinship (K)")
+    print(paste0("Values used: ", "sigmaR: ", x$sigma_R, ", sigmaH: ", x$sigma_H, ", sigmaK: ", x$sigma_K))
+  } else if (("R" %in% x$variance_param) & ("H" %in% x$variance_param)){
+    print("Variance parameters used: Residual (R) and Household (H)")
+    print(paste0("Values used: ", "sigmaR: ", x$sigma_R, ", sigmaH: ", x$sigma_H))
+  } else if (("R" %in% x$variance_param) & ("K" %in% x$variance_param)){
+    print("Variance parameters used: Residual (R) and Kinship (K)")
+    print(paste0("Values used: ", "sigmaR: ", x$sigma_R, ", sigmaK: ", x$sigma_K))
+  } else if (("H" %in% x$variance_param) & ("K" %in% x$variance_param)){
+    print("Variance parameters used: Household (H) and Kinship (K)")
+    print(paste0("Values used: ", "sigmaH: ", x$sigma_H, ", sigmaK: ", x$sigma_K))
+  } else if ("R" %in% x$variance_param){
+    print("Variance parameters used: Residual (R)")
+    print(paste0("Values used: ", "sigmaR: ", x$sigma_R))
+  } else if ("H" %in% x$variance_param){
+    print("Variance parameters used: Household (H)")
+    print(paste0("Values used: ", "sigmaH: ", x$sigma_H))
+  } else {
+    print("Variance parameters used: Kinship (K)")
+    print(paste0("Values used: ", "sigmaK: ", x$sigma_K))
+  }
+}
+
+
+
+

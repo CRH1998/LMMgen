@@ -1,5 +1,9 @@
 #' @title omega_func
 #'
+#' @description
+#' Calculates the variance/covariance matrix $\Sigma$ or V.
+#'
+#'
 #' @param semi_def_matrix A list containing the three matrices, householder matrix, kinship matrix, identity matrix.
 #' @param sigma2_vec A vector containing the variances of the random effects in the same order as the three matrices.
 #'
@@ -20,4 +24,61 @@ omega_func <- function(semi_def_matrix, sigma2_vec){
   }
 
   return(omega)
+}
+
+
+
+
+
+#' Residual Sum of Squares
+#'
+#' @description
+#' Calculates the residual sum of squares.
+#'
+#' @param X design matrix.
+#' @param semi_def_matrix variance/covariance matrix.
+#' @param y outcome vector.
+#' @param params parameter vector.
+#'
+#' @returns Residual sum of squares.
+#' @export
+RSS_func <-  function(X, semi_def_matrix, y, params){
+
+  #Calculating inverse covariance matrix
+  V <- omega_func(semi_def_matrix, params)
+  Vinv <- chol2inv(chol(V))
+  XtVinv <- t(X) %*% Vinv
+  XtVinvX <- XtVinv %*% X
+
+  #Calculating betahat
+  betahat <- chol2inv(chol(XtVinvX)) %*% (XtVinv %*% y)
+
+  res <- y - X %*% betahat
+
+  #RSS
+  RSS <- t(res) %*% Vinv %*% res
+
+  return(RSS)
+}
+
+
+
+#' XtVinvX
+#'
+#' @param X design matrix.
+#' @param semi_def_matrix variance/covariance matrix.
+#' @param y outcome vector.
+#' @param params parameter vector.
+#'
+#' @returns XtVinvX
+#' @export
+XtVinvX_func <- function(X, semi_def_matrix, y, params){
+
+  #Calculating inverse covariance matrix
+  V <- omega_func(semi_def_matrix, params)
+  Vinv <- chol2inv(chol(V))
+  XtVinv <- t(X) %*% Vinv
+  XtVinvX <- XtVinv %*% X
+
+  return(XtVinvX)
 }

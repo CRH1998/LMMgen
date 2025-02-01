@@ -15,7 +15,7 @@ omega_func(semi_def_matrix, sigma2_vec)
 The variance/covariance matrix Sigma
 }
 \description{
-omega_func
+Calculates the variance/covariance matrix $\Sigma$ or V.
 }
 \examples{
 mat1 <- matrix(1:9, ncol = 3)
