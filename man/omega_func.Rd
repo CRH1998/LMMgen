@@ -12,10 +12,10 @@ omega_func(semi_def_matrix, sigma2_vec)
 \item{sigma2_vec}{A vector containing the variances of the random effects in the same order as the three matrices.}
 }
 \value{
-The variance/covariance matrix Sigma
+The variance/covariance matrix Omega
 }
 \description{
-Calculates the variance/covariance matrix $\Sigma$ or V.
+Calculates the variance/covariance matrix Omega or V.
 }
 \examples{
 mat1 <- matrix(1:9, ncol = 3)
