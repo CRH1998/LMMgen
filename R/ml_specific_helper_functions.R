@@ -11,7 +11,6 @@
 #'
 #' @returns Residuals.
 #' @export
-#'
 residual_function <- function(outcomes, design_matrix, beta){
   return(outcomes - design_matrix %*% beta)
 }
