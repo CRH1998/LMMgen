@@ -224,30 +224,78 @@ family_dataset_generator <- function(n_clusters = 100, n_individuals = 10, varia
 
   sigma2_vec <- c(sigma_R, sigma_H, sigma_K)
 
-  if ('R' %in% variance_param){
-    #Diagonal matrix with ones in the diagonal and dimension corresponding to the number of individuals in each cluster (intercept)
+
+  if(("R" %in% variance_param) & ("H" %in% variance_param) & ("K" %in% variance_param)){
+
+    # R matrix
     residual_matrix <- as.matrix(diag(1, nrow = n_individuals))
-  } else {
-    household_matrix <- 0
-  }
 
-  if ('H' %in% variance_param){
-    #Matrix of ones indicating family relation
-    household_matrix <- matrix(1, nrow = n_individuals, ncol = n_individuals) # + as.matrix(diag(0.0, nrow = n_individuals))
-  } else {
-    household_matrix <- 0
-  }
+    # H matrix
+    household_matrix <- matrix(1, nrow = n_individuals, ncol = n_individuals)
 
-
-
-  # Defining semi_def_matrices which is a list containing n_clusters replicas of the gamma_list
-  if ('K' %in% variance_param){
+    # K matrix and repeat R and H matrix
     semi_def_matrices <- replicate(n_clusters,
                                    list(residual_matrix, household_matrix, generate_kinship_matrix(n_individuals = n_individuals)),
                                    simplify = F)
-  } else {
+
+  } else if (("R" %in% variance_param) & ("H" %in% variance_param)){
+
+    # R matrix
+    residual_matrix <- as.matrix(diag(1, nrow = n_individuals))
+
+    # H matrix
+    household_matrix <- matrix(1, nrow = n_individuals, ncol = n_individuals)
+
+    # K matrix and repeat R and H matrix
     semi_def_matrices <- replicate(n_clusters,
                                    list(residual_matrix, household_matrix),
+                                   simplify = F)
+
+  } else if (("R" %in% variance_param) & ("K" %in% variance_param)){
+
+    # R matrix
+    residual_matrix <- as.matrix(diag(1, nrow = n_individuals))
+
+    # K matrix and repeat R matrix
+    semi_def_matrices <- replicate(n_clusters,
+                                   list(residual_matrix, generate_kinship_matrix(n_individuals = n_individuals)),
+                                   simplify = F)
+
+  } else if (("H" %in% variance_param) & ("K" %in% variance_param)){
+
+    # H matrix
+    household_matrix <- matrix(1, nrow = n_individuals, ncol = n_individuals)
+
+    # K matrix and repeat H matrix
+    semi_def_matrices <- replicate(n_clusters,
+                                   list(household_matrix, generate_kinship_matrix(n_individuals = n_individuals)),
+                                   simplify = F)
+
+  } else if ("R" %in% variance_param){
+
+    # R matrix
+    residual_matrix <- as.matrix(diag(1, nrow = n_individuals))
+
+    # Repeat R matrix
+    semi_def_matrices <- replicate(n_clusters,
+                                   list(residual_matrix),
+                                   simplify = F)
+
+  } else if ("H" %in% variance_param){
+
+    # H matrix
+    household_matrix <- matrix(1, nrow = n_individuals, ncol = n_individuals)
+
+    # Repeat H matrix
+    semi_def_matrices <- replicate(n_clusters,
+                                   list(household_matrix),
+                                   simplify = F)
+
+  } else {
+
+    # K matrix and repeat
+    semi_def_matrices <- replicate(n_clusters,
+                                   list(generate_kinship_matrix(n_individuals = n_individuals)),
                                    simplify = F)
   }
 
@@ -377,32 +425,53 @@ FDG <- function(n_clusters = 100, n_individuals = 10,
 #' @export
 #'
 print.FDG <- function(x, ...){
-  print(paste0("Number of clusters: ", x$n_clusters))
-  print(paste0("Number of individuals in each cluster: ", x$n_individuals))
-  print(paste0("Mean of simulated outcomes: ", x$outcome_mean))
-  print(paste0("Variance of simulated outcomes: ", x$outcome_var))
+
+  cat(paste0("Object of class ", class(x)), "\n\n")
+  cat(paste0("Number of clusters: ", x$n_clusters, " with ", x$n_individuals, " individuals in each cluster\n\n"))
+
+
+  cat("Mean and variance of simulated outcomes:\n")
+  # Column headers
+  cat(paste0("               Mean      Variance\n"))
+  # Formatting coefficients
+  cat(sprintf("%-12s %8.4f %10.4f\n", "y", round(x$outcome_mean, 3), round(x$outcome_var, 3)),"\n")
+
 
   if(("R" %in% x$variance_param) & ("H" %in% x$variance_param) & ("K" %in% x$variance_param)){
-    print("Variance parameters used: Residual (R), Household (H) and Kinship (K)")
-    print(paste0("Values used: ", "sigmaR: ", x$sigma_R, ", sigmaH: ", x$sigma_H, ", sigmaK: ", x$sigma_K))
+
+    cat("Variance parameters used: \nResidual (R), Household (H) and Kinship (K)\n\n")
+    cat(paste0("Values used: ", "\nsigmaR: ", x$sigma_R, "  sigmaH: ", x$sigma_H, "  sigmaK: ", x$sigma_K))
+
   } else if (("R" %in% x$variance_param) & ("H" %in% x$variance_param)){
-    print("Variance parameters used: Residual (R) and Household (H)")
-    print(paste0("Values used: ", "sigmaR: ", x$sigma_R, ", sigmaH: ", x$sigma_H))
+
+    cat("Variance parameters used: \nResidual (R) and Household (H)\n\n")
+    cat(paste0("Values used: ", "\nsigmaR: ", x$sigma_R, "  sigmaH: ", x$sigma_H))
+
   } else if (("R" %in% x$variance_param) & ("K" %in% x$variance_param)){
-    print("Variance parameters used: Residual (R) and Kinship (K)")
-    print(paste0("Values used: ", "sigmaR: ", x$sigma_R, ", sigmaK: ", x$sigma_K))
+
+    cat("Variance parameters used: \nResidual (R) and Kinship (K)\n\n")
+    cat(paste0("Values used: ", "\nsigmaR: ", x$sigma_R, "  sigmaK: ", x$sigma_K))
+
   } else if (("H" %in% x$variance_param) & ("K" %in% x$variance_param)){
-    print("Variance parameters used: Household (H) and Kinship (K)")
-    print(paste0("Values used: ", "sigmaH: ", x$sigma_H, ", sigmaK: ", x$sigma_K))
+
+    cat("Variance parameters used: \nHousehold (H) and Kinship (K)\n\n")
+    cat(paste0("Values used: ", "\nsigmaH: ", x$sigma_H, "  sigmaK: ", x$sigma_K))
+
   } else if ("R" %in% x$variance_param){
-    print("Variance parameters used: Residual (R)")
-    print(paste0("Values used: ", "sigmaR: ", x$sigma_R))
+
+    cat("Variance parameters used: \nResidual (R)\n\n")
+    cat(paste0("Values used: ", "\nsigmaR: ", x$sigma_R))
+
   } else if ("H" %in% x$variance_param){
-    print("Variance parameters used: Household (H)")
-    print(paste0("Values used: ", "sigmaH: ", x$sigma_H))
+
+    cat("Variance parameters used:\nHousehold (H)\n\n")
+    cat(paste0("Values used: ", "\nsigmaH: ", x$sigma_H))
+
   } else {
-    print("Variance parameters used: Kinship (K)")
-    print(paste0("Values used: ", "sigmaK: ", x$sigma_K))
+
+    cat("Variance parameters used: \nKinship (K)\n\n")
+    cat(paste0("Values used: ", "\nsigmaK: ", x$sigma_K))
+
   }
 }
 

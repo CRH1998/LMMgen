@@ -23,6 +23,9 @@ Imports:
     Matrix,
     mvtnorm,
     psych,
+    Rcpp,
     stats
 URL: https://github.com/CRH1998/LMMgen
 BugReports: https://github.com/CRH1998/LMMgen/issues
+LinkingTo: 
+    Rcpp

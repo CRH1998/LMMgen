@@ -8,7 +8,8 @@ score_fisher_function(
   design_matrix,
   semi_def_matrix,
   outcomes,
-  params,
+  fixed_effect_par,
+  random_effect_par,
   small_value_threshold = 1e-12,
   add_small_constant = 1e-09
 )
@@ -20,7 +21,9 @@ score_fisher_function(
 
 \item{outcomes}{vector of outcomes for the block.}
 
-\item{params}{vector of initial parameters.}
+\item{fixed_effect_par}{vector of initial fixed effect parameters.}
+
+\item{random_effect_par}{vector of initial random effect parameters.}
 
 \item{small_value_threshold}{values in matrices below this threshold is set to 0.}
 
