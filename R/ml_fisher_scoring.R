@@ -298,9 +298,9 @@ lmmgen <- function(init_fixed_effect_par = NULL, init_random_effect_par = NULL,
 
   output <- structure(
     list('n_fixed_effects' = ml_output$n_fixed_effects,
-         'fixef' = ml_output$init_fixed_effect_par,
+         'fixef' = ml_output$fixef,
          'n_random_effects' = ml_output$n_random_effects,
-         'ranef' = ml_output$init_random_effect_par,
+         'ranef' = ml_output$ranef,
          'fisher_inv' = ml_output$fisher_inv,
          'score' = ml_output$score,
          'fisher_scoring_iterations' = ml_output$fisher_scoring_iterations,
@@ -329,23 +329,23 @@ print.lmmgen <- function(x, ...){
 
   #browser()
   # Converged
-  if(x$ml_output$converged){
+  if(x$converged){
     cat(paste0("Log-likelihood: ", x$log_lik, "\n"))
-    cat(paste0("Converged after: ", x$ml_output$fisher_scoring_iterations, " fisher scoring iterations.\n\n"))
+    cat(paste0("Converged after: ", x$fisher_scoring_iterations, " fisher scoring iterations.\n\n"))
   } else {
     cat(paste0("Log-likelihood: ", x$log_lik, "\n"))
-    cat(paste0("Did not converge after: ", x$ml_output$fisher_scoring_iterations, " fisher scoring iterations.\n\n"))
+    cat(paste0("Did not converge after: ", x$fisher_scoring_iterations, " fisher scoring iterations.\n\n"))
   }
 
-  cat(paste0("Number of fixed effects parameters: ", x$ml_output$n_fixed_effects, "\n"))
-  cat(paste0("Number of random effects parameters: ", x$ml_output$n_random_effects, "\n\n"))
+  cat(paste0("Number of fixed effects parameters: ", x$n_fixed_effects, "\n"))
+  cat(paste0("Number of random effects parameters: ", x$n_random_effects, "\n\n"))
 
 
 
   # Print Coefficients
   cat("Fixed effects coefficients:\n")
-  fixef <- x$ml_output$fixef
-  fixef_se <- sqrt(abs(x$ml_output$fisher_inv[1:length(fixef), 1:length(fixef)]))
+  fixef <- x$fixef
+  fixef_se <- sqrt(abs(x$fisher_inv[1:length(fixef), 1:length(fixef)]))
 
   # Column headers
   cat(paste0("               Estimate   Std. Error    Lower Wald CI Upper Wald CI\n"))
@@ -359,8 +359,8 @@ print.lmmgen <- function(x, ...){
   cat("\n")
 
   cat("Random effects coefficients:\n")
-  ranef <- x$ml_output$ranef
-  ranef_se <- sqrt(abs(x$ml_output$fisher_inv[(length(fixef)+1):ncol(x$ml_output$fisher_inv), (length(fixef)+1):ncol(x$ml_output$fisher_inv)]))
+  ranef <- x$ranef
+  ranef_se <- sqrt(abs(x$fisher_inv[(length(fixef)+1):ncol(x$fisher_inv), (length(fixef)+1):ncol(x$fisher_inv)]))
 
   # Column headers
   cat(paste0("               Estimate   Std. Error    Lower Wald CI Upper Wald CI\n"))
